@@ -1,0 +1,27 @@
+services:
+  api-service:
+    build:
+      context: .
+      dockerfile: api-service/Dockerfile
+    container_name: cars-alert-api
+    restart: unless-stopped
+    ports:
+      - "8123:8123"
+    environment:
+      ALERTS_DB_PATH: /app/data/data.db
+      ALERT_JOB_INTERVAL_SECONDS: 60
+    volumes:
+      - ./api-service/data:/app/data
+
+  app:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    container_name: cars-alert-web
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_PROXY_TARGET: http://api-service:8123
+    depends_on:
+      - api-service
