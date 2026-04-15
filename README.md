@@ -99,6 +99,206 @@ docker compose up --build -d
 
 - `./api-service/data/data.db`
 
+## 操作说明
+
+这一节给出两种常用启动方式：
+
+1. 本地人工手动启动前后端
+2. 使用 Docker Compose 编排启动容器
+
+### 方式一：人工手动启动前后端
+
+适合开发联调、代码调试、接口排查。
+
+#### 第 1 步：启动后端 FastAPI
+
+在仓库根目录执行：
+
+```bash
+~/.local/bin/pip install --user --break-system-packages -r api-service/requirements.txt
+PYTHONPATH=api-service python3 -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8123
+```
+
+启动成功后可访问：
+
+- 接口根地址：`http://127.0.0.1:8123`
+- Swagger 文档：`http://127.0.0.1:8123/docs`
+- 健康检查：`http://127.0.0.1:8123/api/health`
+
+#### 第 2 步：启动前端 React
+
+在另一个终端执行：
+
+```bash
+cd app
+npm install
+npm run dev
+```
+
+启动成功后访问：
+
+- 前端页面：`http://127.0.0.1:5173`
+
+#### 第 3 步：联调说明
+
+- 前端开发服务器会把 `/api` 请求代理到本地 FastAPI
+- 因此前端和后端都启动后，直接打开 `http://127.0.0.1:5173` 即可
+
+#### 第 4 步：手动停止
+
+- 停止前端：在前端终端按 `Ctrl+C`
+- 停止后端：在后端终端按 `Ctrl+C`
+
+### 方式二：Docker Compose 编排启动
+
+适合本地演示、服务器部署、镜像化运行。
+
+#### 第 1 步：准备环境
+
+确认机器已安装：
+
+- Docker
+- Docker Compose
+
+可执行检查：
+
+```bash
+docker --version
+docker compose version
+```
+
+#### 第 2 步：启动容器
+
+在仓库根目录执行：
+
+```bash
+docker compose up --build -d
+```
+
+启动后默认访问地址：
+
+- 前端：`http://127.0.0.1:5173`
+- 后端：`http://127.0.0.1:8123`
+- OpenAPI：`http://127.0.0.1:8123/docs`
+
+#### 第 3 步：查看运行状态
+
+```bash
+docker compose ps
+docker compose logs --tail=100
+```
+
+如果只查看后端：
+
+```bash
+docker compose logs --tail=100 api-service
+```
+
+如果只查看前端：
+
+```bash
+docker compose logs --tail=100 app
+```
+
+#### 第 4 步：停止容器
+
+```bash
+docker compose down
+```
+
+如果希望保留容器数据但停止运行，也可以：
+
+```bash
+docker compose stop
+```
+
+#### 第 5 步：重新启动已有容器
+
+```bash
+docker compose up -d
+```
+
+#### 第 6 步：重新构建并发布新代码
+
+代码更新后执行：
+
+```bash
+docker compose up --build -d
+```
+
+### 服务器部署建议
+
+如果是在服务器上部署，推荐流程如下：
+
+#### 方案 A：直接拉 GitHub 代码后启动
+
+```bash
+git clone <your-repo-url>
+cd cars-alert
+docker compose up --build -d
+```
+
+后续更新：
+
+```bash
+git pull origin main
+docker compose up --build -d
+```
+
+#### 方案 B：直接拉镜像仓库镜像部署
+
+如果服务器只负责运行，不负责构建，可以先拉取已经推送好的镜像，再使用 Compose 或 `docker run` 启动。
+
+当前镜像仓库示例：
+
+- `43.165.184.219:5000/cars-alert-app:latest`
+- `43.165.184.219:5000/cars-alert-api-service:latest`
+
+### 数据库文件说明
+
+当前项目使用 SQLite，数据库文件不是固定写死在镜像里，而是通过卷挂载保存在宿主机：
+
+- 宿主机路径：`./api-service/data/data.db`
+- 容器内路径：`/app/data/data.db`
+
+这意味着：
+
+- 重新构建镜像不会自动清空数据库
+- 删除宿主机数据目录会丢失数据
+- 服务器部署时可以直接上传 `data.db` 后复用现有数据
+
+### 常用运维命令
+
+查看容器状态：
+
+```bash
+docker compose ps
+```
+
+查看后端健康检查：
+
+```bash
+curl http://127.0.0.1:8123/api/health
+```
+
+查看前端通过代理访问后端是否正常：
+
+```bash
+curl http://127.0.0.1:5173/api/health
+```
+
+进入后端容器：
+
+```bash
+docker exec -it cars-alert-api sh
+```
+
+进入前端容器：
+
+```bash
+docker exec -it cars-alert-web sh
+```
+
 ## 数据库表设计
 
 本项目使用 SQLite，核心表如下。
