@@ -80,7 +80,7 @@ npm run dev
 
 - Web: `http://127.0.0.1:5173`
 
-前端开发环境通过 [vite.config.js](/home/jamesduan/cars-alert/app/vite.config.js) 代理 `/api` 到本地后端。Docker 环境内通过 `http://api-service:8123` 转发。
+前端开发环境通过 [vite.config.js](app/vite.config.js) 代理 `/api` 到本地后端。Docker 环境内通过 `http://api-service:8123` 转发。
 
 ## Docker Compose
 
@@ -176,7 +176,7 @@ docker compose up --build -d
 
 ## 定时任务核心逻辑设计
 
-定时任务由 APScheduler 驱动，定义在 [main.py](/home/jamesduan/cars-alert/api-service/app/main.py)。
+定时任务由 APScheduler 驱动，定义在 [main.py](api-service/app/main.py)。
 
 ### 自动任务调度
 
@@ -523,4 +523,4 @@ npm run build
 
 ## 相关文档
 
-- 发送链路说明见 [wechat-alert-chain.md](/home/jamesduan/cars-alert/docs/wechat-alert-chain.md)
+- 发送链路说明见 [wechat-alert-chain.md](docs/wechat-alert-chain.md)
